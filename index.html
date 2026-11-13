@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ארכיון חדשות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EDF0F5;--bub:#fff;--ink:#17212B;--muted:#6B7787;--line:#DCE2EA;--accent:#1747C9;--on-accent:#fff;--accent-soft:#E7EEFF;--green:#15803D;--green-soft:#DDF6E6;--bar:#0D1218;--media:#1c262f;--imp:#C5221F;--warn:#9A5B00;--warn-soft:#FFF4DC;--nm-s:65%;--nm-l:36%;--av-l:30%}
+@media (prefers-color-scheme:dark){:root{--bg:#0E141B;--bub:#18212B;--ink:#E7EDF3;--muted:#8E9BAA;--line:#2A3541;--accent:#8FADFF;--on-accent:#0B1430;--accent-soft:#1B2A4D;--green:#6EE7A0;--green-soft:#17352A;--bar:#06090D;--media:#0b1015;--imp:#FF8A80;--warn:#FFC66B;--warn-soft:#3A2C12;--nm-s:75%;--nm-l:72%;--av-l:34%}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Heebo,"Segoe UI",Arial,sans-serif;line-height:1.5}
+button,input,select{font:inherit;color:inherit}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+header{position:sticky;top:0;z-index:6}
+.top{background:var(--bar);color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 16px}
+.top h1{margin:0;font-size:1.25rem;font-weight:800}
+.meta{font-size:.8rem;color:#9fb0c0;margin-inline-end:auto}
+.top select,.top .tb{background:transparent;border:1px solid #3a4756;color:#fff;border-radius:8px;padding:4px 10px;cursor:pointer}
+.top option{color:#17212B}
+.sub{background:var(--bub);border-bottom:1px solid var(--line);padding:8px 16px 10px;max-height:44vh;overflow-y:auto}
+.row1{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:4px 12px;cursor:pointer;font-size:.9rem}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--on-accent);font-weight:700}
+input[type=search]{flex:1 1 180px;max-width:340px;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:4px 10px;min-width:0}
+.grp{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;margin-top:8px}
+.datebox{display:inline-flex;align-items:center;gap:6px}
+.datebox label{font-size:.85rem;color:var(--muted)}
+input[type=date]{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:3px 8px;color-scheme:light dark}
+.dclear{border:0;background:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:0 4px}
+.fcount{display:inline-grid;place-items:center;min-width:1.4em;height:1.4em;margin-inline-start:4px;border-radius:999px;background:#fff;color:var(--bar);font-size:.75rem;font-weight:800;padding:0 4px}
+#filterBtn[aria-expanded=true]{background:#fff;color:var(--bar);font-weight:700}
+#filterBtn[aria-expanded=true] .fcount{background:var(--bar);color:#fff}
+.clearf{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:700;padding:0;margin-inline-start:8px;text-decoration:underline}
+#filters[hidden]+.showing{margin-top:0}
+.pback{position:fixed;inset:0;background:rgba(5,9,13,.4);z-index:9}
+.panel{position:fixed;top:0;bottom:0;inset-inline-start:0;width:min(400px,92vw);background:var(--bub);border-inline-end:1px solid var(--line);z-index:10;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;box-shadow:0 0 30px rgba(0,0,0,.18)}
+.panel.open{transform:none}
+.phead{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+.phead h2{margin:0;font-size:1.05rem;font-weight:800}
+.pclose{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;font-size:1.3rem;cursor:pointer;line-height:1}
+.pnote{margin:0;padding:8px 16px;font-size:.78rem;color:var(--muted);border-bottom:1px solid var(--line)}
+.plist{flex:1;overflow-y:auto;padding:8px 12px 20px}
+.pempty{text-align:center;color:var(--muted);padding:40px 10px}
+.alert{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;border-inline-start:4px solid var(--warn)}
+.alert.err{border-inline-start-color:var(--imp)}
+.alert.new{background:var(--accent-soft)}
+.alert .ah{display:flex;gap:8px;align-items:baseline;font-size:.78rem;color:var(--muted);margin-bottom:4px}
+.alert .lv{font-weight:700;color:var(--warn)}
+.alert.err .lv{color:var(--imp)}
+.alert p{margin:0;white-space:pre-line;overflow-wrap:anywhere;font-size:.9rem}
+.alert a{color:var(--accent)}
+.alert .ns{display:block;margin-top:4px;font-size:.75rem;color:var(--imp)}
+.showing{margin:8px 0 0;font-size:.9rem;font-weight:500}
+.showing b{color:var(--accent);font-weight:700}
+.lbl{flex:none;min-width:5.4em;font-size:.78rem;color:var(--muted);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:5px;flex:1 1 200px;min-width:0}
+.chip{flex:none;border:1px solid var(--line);background:transparent;border-radius:8px;padding:2px 11px;cursor:pointer;font-size:.85rem;color:var(--accent)}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
+main{max-width:680px;margin:0 auto;padding:8px 12px 90px}
+.state{text-align:center;padding:60px 20px;color:var(--muted)}
+.state p{margin:0 0 12px}
+.btn{border:1px solid var(--line);background:var(--bub);border-radius:8px;padding:6px 14px;cursor:pointer}
+.older{text-align:center;margin:10px 0}
+.sep{text-align:center;margin:18px 0 6px}
+.sep span{background:var(--bub);border:1px solid var(--line);border-radius:999px;padding:2px 14px;font-size:.78rem;color:var(--muted)}
+.msg{display:flex;gap:10px;margin:12px 0;align-items:flex-start;--nm:hsl(var(--h) var(--nm-s) var(--nm-l))}
+.av{flex:none;width:44px;height:44px;border-radius:50%;background:hsl(var(--h) 55% var(--av-l));color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.05rem}
+.col{flex:1 1 auto;min-width:0}
+.mrow{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-size:.8rem;color:var(--muted);margin:0 2px 3px}
+.mrow b{color:var(--nm);font-weight:700;font-size:.88rem}
+.bub{background:var(--bub);border:1px solid var(--line);border-radius:18px;border-start-start-radius:5px;padding:12px 14px}
+.bub.imp{border-inline-start:4px solid var(--imp)}
+.badge{color:var(--imp);font-weight:700;font-size:.78rem;border:1px solid var(--imp);border-radius:6px;padding:0 7px}
+.badge.soft{color:var(--muted);border-color:var(--line);font-weight:500}
+.txt{margin:0;white-space:pre-line;overflow-wrap:anywhere}
+.gal{display:grid;gap:6px;margin-bottom:10px}
+.gal.n2{grid-template-columns:1fr 1fr}
+.media{position:relative;display:block;width:100%;aspect-ratio:16/10;border:0;padding:0;border-radius:10px;overflow:hidden;background:var(--media);cursor:pointer}
+.gal.n2 .media{aspect-ratio:1/1}
+.media img{width:100%;height:100%;object-fit:cover;display:block}
+.media.playing{cursor:default;background:#000}
+.media.playing video,.media.playing iframe{width:100%;height:100%;display:block;border:0;background:#000;object-fit:contain}
+.noprev{display:grid;place-items:center;height:100%;color:#9fb0c0;font-size:.9rem}
+.play{position:absolute;inset:0;margin:auto;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.6);display:grid;place-items:center;pointer-events:none}
+.play svg{width:22px;height:22px;fill:#fff;transform:translateX(-2px)}
+.tag{position:absolute;inset-block-end:8px;inset-inline-start:8px;background:rgba(0,0,0,.65);color:#fff;font-size:.75rem;padding:1px 8px;border-radius:6px;pointer-events:none}
+.num{position:absolute;inset-block-start:8px;inset-inline-start:8px;background:rgba(0,0,0,.65);color:#fff;font-size:.75rem;padding:0 7px;border-radius:6px;pointer-events:none}
+.file{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px}
+.file .ico{flex:none;width:34px;height:34px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+.file .ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.file .fn{flex:1 1 auto;min-width:0;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file a{flex:none;font-size:.85rem;font-weight:700;color:var(--green);text-decoration:none}
+.missing{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:8px 10px;font-size:.85rem;margin-bottom:10px}
+.missing a{color:inherit;font-weight:700}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.btns a{display:block;text-align:center;padding:8px;border-radius:9px;border:1px solid;text-decoration:none;font-weight:700;font-size:.9rem}
+.get{background:var(--green-soft);color:var(--green);border-color:var(--green)}
+.view{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.flist{margin-top:10px;font-size:.85rem;display:grid;gap:4px}
+.flist div{display:flex;gap:10px;align-items:center}
+.flist span{color:var(--muted);min-width:4.5em}
+.flist a{color:var(--accent);text-decoration:none;font-weight:500}
+.acts{display:flex;gap:8px;margin-top:10px}
+.ib{width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--line);background:transparent;border-radius:8px;color:var(--muted);cursor:pointer}
+.ib:hover,.ib.ok{color:var(--accent);border-color:var(--accent)}
+.ib svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#down{position:fixed;inset-block-end:18px;left:50%;transform:translateX(-50%);background:var(--bub);border:1px solid var(--line);border-radius:10px;padding:7px 18px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.18);z-index:5}
+dialog{border:0;padding:0;background:transparent;max-width:min(960px,96vw);width:100%}
+dialog::backdrop{background:rgba(5,9,13,.82)}
+.wrap{position:relative}
+.sheet{background:var(--bub);color:var(--ink);border-radius:12px;overflow:hidden;max-height:94vh;display:flex;flex-direction:column}
+.stage{background:#000;display:grid;place-items:center;min-height:200px;position:relative}
+.stage iframe{width:100%;aspect-ratio:16/9;max-height:70vh;border:0}
+.stage img{max-width:100%;max-height:70vh;display:block}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:1.3rem;cursor:pointer}
+.nav.prev{inset-inline-start:10px}.nav.next{inset-inline-end:10px}
+.cap{padding:14px 16px;overflow:auto}
+.av{overflow:hidden}.av img{width:100%;height:100%;object-fit:cover}
+#toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);background:rgba(22,24,35,.88);color:#fff;padding:8px 16px;border-radius:999px;font-size:.9rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+#toast.show{opacity:1}
+.x{position:absolute;inset-block-start:10px;inset-inline-end:10px;z-index:2;width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:1.3rem;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>ארכיון חדשות</h1>
+    <span class="meta" id="meta" aria-live="polite">טוען…</span>
+    <select id="auto" aria-label="ריענון אוטומטי">
+      <option value="30">ריענון כל 30 שניות</option>
+      <option value="60">ריענון כל דקה</option>
+      <option value="300">ריענון כל 5 דקות</option>
+      <option value="0">ללא ריענון אוטומטי</option>
+    </select>
+    <button class="tb" id="filterBtn" type="button" aria-expanded="true" aria-controls="filters">סינון הודעות <span class="fcount" id="fcount" hidden></span></button>
+    <button class="tb" id="alertsBtn" type="button" aria-expanded="false" aria-controls="alertsPanel">התראות מערכת <span class="fcount" id="acount" hidden></span></button>
+    <button class="tb" id="refresh" type="button">רענון עכשיו</button>
+  </div>
+  <div class="sub">
+   <div id="filters">
+    <div class="row1">
+      <div class="seg" role="group" aria-label="סוג תוכן">
+        <button type="button" data-k="all" aria-pressed="true">הכל</button>
+        <button type="button" data-k="video" aria-pressed="false">סרטונים</button>
+        <button type="button" data-k="image" aria-pressed="false">תמונות</button>
+        <button type="button" data-k="file" aria-pressed="false">קבצים</button>
+        <button type="button" data-k="text" aria-pressed="false">טקסט בלבד</button>
+      </div>
+      <div class="seg" id="catSeg" role="group" aria-label="מגזר">
+        <button type="button" data-c="all" aria-pressed="true">כל הערוצים</button>
+        <button type="button" data-c="haredi" aria-pressed="false">חרדיים</button>
+        <button type="button" data-c="general" aria-pressed="false">כלליים</button>
+        <button type="button" data-c="important" aria-pressed="false">חשוב</button>
+      </div>
+      <span class="datebox">
+        <label for="day">תאריך</label>
+        <input type="date" id="day">
+        <button type="button" class="chip" id="today">היום</button>
+        <button type="button" class="chip" id="yesterday">אתמול</button>
+        <button type="button" class="dclear" id="dayClear" aria-label="ניקוי תאריך" hidden>×</button>
+      </span>
+      <input type="search" id="q" placeholder="חיפוש בכל הקבוצות" aria-label="חיפוש">
+      <button class="chip" id="dupBtn" type="button" aria-pressed="false">הסתר כפולות</button>
+      <button class="chip" id="allChip" type="button" aria-pressed="true">כל הקבוצות</button>
+      <button class="chip" id="toggleChips" type="button">הסתר ערוצים</button>
+    </div>
+    <div id="chipsBox">
+      <div class="grp" id="grpH"><span class="lbl">חרדיות</span><div class="chips" id="chipsH"></div></div>
+      <div class="grp" id="grpO"><span class="lbl">שאר הקבוצות</span><div class="chips" id="chipsO"></div></div>
+    </div>
+   </div>
+    <p class="showing" id="showing" aria-live="polite"></p>
+  </div>
+</header>
+
+<div class="pback" id="pback" hidden></div>
+<aside class="panel" id="alertsPanel" aria-label="התראות מערכת" aria-hidden="true">
+  <div class="phead">
+    <h2>התראות מערכת</h2>
+    <button class="pclose" id="alertsClose" type="button" aria-label="סגירת הפאנל">×</button>
+  </div>
+  <p class="pnote">התראות שהבוט שלח על תקלות: הודעות שדולגו, שליחה שנכשלת, תור שליחה מלא וכדומה. 30 הימים האחרונים.</p>
+  <div class="plist" id="alertsList"><p class="pempty">טוען…</p></div>
+</aside>
+
+<main>
+  <div id="state" class="state">טוען את הגיליון…</div>
+  <div class="older" id="olderWrap" hidden><button class="btn" id="older" type="button">הודעות ישנות יותר</button></div>
+  <div id="msgs"></div>
+</main>
+<button id="down" type="button" hidden>גלול למטה</button>
+
+<dialog id="dlg" aria-label="תצוגה מקדימה">
+  <div class="wrap">
+    <button class="x" id="close" type="button" aria-label="סגירה">×</button>
+    <div class="sheet">
+      <div class="stage" id="stage"></div>
+      <div class="cap" id="cap"></div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+/* ========== הגדרות ========== */
+const SHEET_ID = '1Lr2aIKoG43xVbIwBpW2CLxEUJMGu3dRIgLZBcAOlmbs';   // גיליון Telegram_Video_Archive
+const PAGE = 40;   // כמה הודעות מוצגות בכל פעם
+// תמונת פרופיל לכל ערוץ (לא חובה). המפתח = שם הערוץ כפי שמופיע בגיליון. לדוגמה: 'הקו החרדי': 'https://.../logo.png'
+const CHANNEL_AVATARS = {};
+// הערוצים החרדיים בבוט (גרסה 4.6). הבוט רושם את הקטגוריה גם בגיליון (עמודה N) - הרשימה משמשת לשורות ישנות בלי קטגוריה.
+const HAREDI_CHANNELS = ["הפרגוד","זירת ניוז","שמש ניוז","הערינג","ידיעות בני ברק","הסקופים","בני ברקים","טוויטרס","המוקד",
+  "הקו החרדי","אוף דה רקורד","זמן אמת","לכתחילה","השטיבלאך","שקיפות"];
+
+/* עמודות גיליון הלוג (גרסה 4.6) */
+const C = { DATE: 0, TYPE: 1, CHANNEL: 2, MSGID: 3, TEXT: 4, FILENAME: 5, LINK: 6, DL: 7, SIZE: 8, SRC: 9,
+  EXPIRES: 10, MEDIA: 11, STATUS: 12, CATEGORY: 13, SENT: 14, NOTE: 15 };
+/* שורות של הודעות שלא נשלחו - לא מוצגות */
+const SKIP_STATUS = ['פרסומת', 'ריק - לא נשלח', 'השליחה נכשלה'];
+
+const $ = s => document.querySelector(s);
+const state = { items: [], kind: 'all', cat: 'all', sel: new Set(), q: '', day: '', hideDups: false, list: [], start: 0, fresh: 0 };
+const dayKey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const link = (href, label) => { const a = el('a', null, label); a.href = href; a.target = '_blank'; a.rel = 'noopener noreferrer'; return a; };
+const hm = d => d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', hour12: false });
+// זמן יחסי ("לפני 5 דק׳") להודעות מ-24 השעות האחרונות
+function ago(d) {
+  const m = Math.round((Date.now() - d) / 60000);
+  if (m < 0 || m >= 1440) return '';
+  if (m < 1) return 'עכשיו';
+  if (m < 60) return `לפני ${m} דק׳`;
+  const h = Math.round(m / 60);
+  return h === 1 ? 'לפני שעה' : `לפני ${h} שע׳`;
+}
+function timeEl(d) {
+  const a = ago(d), t = el('time', null, hm(d) + (a ? ' · ' + a : ''));
+  t.dateTime = d.toISOString(); t.title = d.toLocaleString('he-IL');
+  return t;
+}
+const thumb = (id, w) => `https://drive.google.com/thumbnail?id=${id}&sz=w${w}`;
+const dlUrl = id => `https://drive.google.com/uc?export=download&id=${id}`;
+const hue = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const nearBottom = () => document.documentElement.scrollHeight - scrollY - innerHeight < 250;
+const toBottom = () => { scrollTo(0, document.documentElement.scrollHeight); setTimeout(() => scrollTo(0, document.documentElement.scrollHeight), 300); };
+
+/* ========== טעינה מהגיליון ==========
+   דרך 1: JSONP (עוקף CORS). דרך 2 (גיבוי): fetch רגיל לאותה כתובת. */
+async function loadSheet(tab) {
+  const errors = [];
+  try { return await loadSheetJsonp(tab); } catch (e) { errors.push('jsonp:' + e.message); }
+  try { return await loadSheetFetch(tab); } catch (e) { errors.push('fetch:' + e.message); }
+  const err = new Error(errors[0].split(':').slice(1).join(':') || 'network');
+  err.detail = errors.join(' | ');
+  throw err;
+}
+const tabParam = tab => (tab ? '&sheet=' + encodeURIComponent(tab) : '');
+async function loadSheetFetch(tab) {
+  const r = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1${tabParam(tab)}&_=${Date.now()}`);
+  if (!r.ok) throw new Error('http ' + r.status);
+  const txt = await r.text();
+  const a = txt.indexOf('{'), b = txt.lastIndexOf('}');
+  if (a < 0 || b < 0) throw new Error('not json');
+  const d = JSON.parse(txt.slice(a, b + 1));
+  if (d.status !== 'ok') throw new Error('sheet');
+  return d;
+}
+function loadSheetJsonp(tab) {
+  return new Promise((resolve, reject) => {
+    const cb = '__sheet' + Date.now() + Math.floor(Math.random() * 1e6);
+    const s = document.createElement('script');
+    const done = () => { clearTimeout(t); delete window[cb]; s.remove(); };
+    const t = setTimeout(() => { done(); reject(new Error('timeout')); }, 25000);
+    window[cb] = d => {
+      done();
+      if (d && d.status === 'ok') return resolve(d);
+      const why = d && d.errors && d.errors[0] ? (d.errors[0].detailed_message || d.errors[0].message || d.errors[0].reason) : '';
+      reject(new Error('sheet' + (why ? ': ' + why : '')));
+    };
+    s.onerror = () => { done(); reject(new Error('network')); };
+    s.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&headers=1${tabParam(tab)}&_=${Date.now()}`;
+    document.head.appendChild(s);
+  });
+}
+function parseDate(c) {
+  if (!c || c.v == null) return null;
+  const v = String(c.v);
+  let m = v.match(/^Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)$/);
+  if (m) return new Date(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  m = v.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0));
+  return null;
+}
+function kindOf(fileName, mediaCol) {
+  const f = (fileName || '').toLowerCase();
+  if (/\.(mp4|mov|webm|m4v|avi|mkv)$/.test(f) || mediaCol.includes('סרטונ')) return 'video';
+  if (/\.(jpe?g|png|webp|gif|bmp)$/.test(f) || mediaCol.includes('תמונ')) return 'image';
+  if (/\.(mp3|ogg|m4a|wav|opus)$/.test(f) || mediaCol.includes('אודיו')) return 'audio';
+  if (f || mediaCol.includes('מסמכ')) return 'doc';
+  return 'unknown';   // קובץ שהיה כבר בארכיון - הסוג לא רשום
+}
+
+/* כל ההודעה (טקסט + כל הקבצים שלה) מקובצת לבועה אחת, לפי ערוץ + Message ID */
+function toItems(data) {
+  const byKey = new Map();
+  for (const r of data.table.rows) {
+    const c = r.c || [];
+    const t = i => (c[i] && c[i].v != null ? String(c[i].v).trim() : '');
+    const date = parseDate(c[C.DATE]);
+    const channel = t(C.CHANNEL), msgId = t(C.MSGID).replace(/\.0$/, '');
+    if (!date || !channel || !msgId) continue;
+    const status = t(C.STATUS);
+    if (SKIP_STATUS.some(s => status.startsWith(s))) continue;
+    if (t(C.SENT) === 'לא') continue;   // ניסיון שליחה שנכשל (ההודעה תופיע כשתישלח בהצלחה)
+
+    const key = channel + '|' + msgId;
+    let it = byKey.get(key);
+    if (!it) {
+      it = { key, date, channel, msgId, text: '', imp: false, haredi: false, tg: '', media: [], missing: false, notes: new Set() };
+      byKey.set(key, it);
+    }
+    if (date < it.date) it.date = date;
+    if (t(C.TYPE) === 'גיוס') it.imp = true;
+    if (t(C.CATEGORY) === 'חרדי' || HAREDI_CHANNELS.includes(channel)) it.haredi = true;
+    if (!it.text && t(C.TEXT)) it.text = t(C.TEXT);
+    if (!it.tg && /^https?:\/\//.test(t(C.SRC))) it.tg = t(C.SRC);
+    const mediaCol = t(C.MEDIA), note = t(C.NOTE);
+    if (/לא נשמר בארכיון|ניסיון שחזור לא הצליח/.test(mediaCol)) it.missing = true;
+    if (mediaCol === 'שוחזר בדיעבד' || note.includes('שוחזר')) it.notes.add('שוחזר');
+    if (status.startsWith('כפילות')) it.botDup = true;   // הבוט זיהה את ההודעה ככפולה
+
+    const idm = t(C.LINK).match(/(?:\/d\/|id=)([\w-]+)/);
+    // אותו קובץ שהועלה פעמיים לדרייב עבור אותה הודעה (אותו סוג, שם וגודל, מזהה שונה) - מוצג פעם אחת
+    const fname = t(C.FILENAME), fsize = parseFloat(t(C.SIZE)) || 0, fkind = kindOf(fname, mediaCol);
+    const sameFile = m => m.id === (idm && idm[1]) || (fname && m.name === fname && m.size === fsize && m.kind === fkind);
+    if (idm && !it.media.some(sameFile)) {
+      const dl = t(C.DL);
+      it.media.push({
+        id: idm[1], kind: kindOf(t(C.FILENAME), mediaCol), name: t(C.FILENAME),
+        size: parseFloat(t(C.SIZE)) || 0, drive: t(C.LINK), dl: /^https?:\/\//.test(dl) ? dl : dlUrl(idm[1])
+      });
+    }
+  }
+  const out = [...byKey.values()];
+  out.forEach(it => {
+    it.media.sort((a, b) => (a.kind === 'video') - (b.kind === 'video'));
+    it.kinds = new Set(it.media.map(m => m.kind));
+  });
+  out.sort((a, b) => a.date - b.date);   // מהישן לחדש, כמו בצ׳אט
+  return dedupe(out);
+}
+
+/* סימון הודעות כפולות: הודעה עם אותו טקסט, או עם אותם קבצים, שכבר הופיעה (גם מערוץ אחר), או שהבוט סימן ככפולה.
+   כברירת מחדל הן מוצגות. בכפתור "הסתר כפולות" הן מוסתרות, ונשארת ההודעה הראשונה שפורסמה. */
+const normText = t => t.replace(/https?:\/\/\S+/g, '').replace(/[^\p{L}\p{N}]+/gu, '').slice(0, 150);
+function dedupe(list) {
+  const texts = new Set(), files = new Set(), out = [];
+  for (const it of list) {
+    const nt = normText(it.text || '');
+    const textDup = nt.length >= 15 && texts.has(nt);
+    const fileDup = it.media.length > 0 && it.media.every(m => files.has(m.id));
+    it.isDup = !!(textDup || fileDup || it.botDup);
+    if (nt.length >= 15) texts.add(nt);
+    it.media.forEach(m => files.add(m.id));
+    out.push(it);
+  }
+  return out;
+}
+
+/* ========== הודעה ========== */
+const PATHS = {
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+  ext: '<path d="M7 17 17 7M9 7h8v8"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  audio: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  doc: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/>',
+  share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>'
+};
+let toastTimer;
+function toast(t) {
+  let n = $('#toast');
+  if (!n) { n = el('div'); n.id = 'toast'; document.body.appendChild(n); }
+  n.textContent = t; n.className = 'show';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => n.className = '', 2000);
+}
+async function share(it, btn) {
+  const url = it.tg || (it.media[0] && it.media[0].drive) || '';
+  const text = it.channel + (it.text ? ': ' + it.text.slice(0, 300) : '');
+  try {
+    if (navigator.share) await navigator.share({ title: it.channel, text, url });
+    else { await navigator.clipboard.writeText(text + (url ? '\n' + url : '')); toast('הטקסט והקישור הועתקו'); btn.classList.add('ok'); setTimeout(() => btn.classList.remove('ok'), 1200); }
+  } catch (e) {}
+}
+function ib(tag, path, label) {
+  const b = el(tag, 'ib'); if (tag === 'button') b.type = 'button';
+  b.title = label; b.setAttribute('aria-label', label);
+  b.innerHTML = '<svg viewBox="0 0 24 24">' + path + '</svg>';
+  return b;
+}
+function copyText(t, btn) {
+  const ok = () => { btn.classList.add('ok'); setTimeout(() => btn.classList.remove('ok'), 1200); };
+  const fb = () => { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); ok(); } catch (e) {} a.remove(); };
+  navigator.clipboard ? navigator.clipboard.writeText(t).then(ok, fb) : fb();
+}
+const visual = m => m.kind === 'video' || m.kind === 'image' || m.kind === 'unknown';
+
+function mediaTile(it, m, idx, total) {
+  const b = el('button', 'media'); b.type = 'button';
+  b.setAttribute('aria-label', m.kind === 'video' ? 'הפעלת סרטון' : 'הגדלה');
+  const img = new Image();
+  img.loading = 'lazy'; img.alt = ''; img.referrerPolicy = 'no-referrer'; img.src = thumb(m.id, total > 1 ? 400 : 640);
+  img.onerror = () => img.replaceWith(el('div', 'noprev', 'אין תצוגה מקדימה'));
+  b.appendChild(img);
+  if (m.kind === 'video') { const p = el('span', 'play'); p.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'; b.appendChild(p); }
+  if (m.size >= 1) b.appendChild(el('span', 'tag', m.size + ' MB'));
+  if (total > 1) b.appendChild(el('span', 'num', (idx + 1) + '/' + total));
+  b.onclick = () => (m.kind === 'video' ? playInline(b, m) : openViewer(it, idx));
+  return b;
+}
+/* סרטון: לחיצה מנגנת אותו במקום, בתוך ההודעה (בלי חלון קופץ).
+   קודם מנסים נגן רגיל עם הקובץ מהדרייב; אם הדרייב לא מאפשר (למשל קובץ גדול) - נגן הדרייב המוטמע, באותו מקום. */
+function playInline(tile, m) {
+  document.querySelectorAll('.media.playing video').forEach(v => v.pause());   // סרטון אחד בכל פעם
+  const box = el('div', 'media playing');
+  const v = document.createElement('video');
+  v.controls = true; v.autoplay = true; v.playsInline = true; v.preload = 'auto';
+  v.src = dlUrl(m.id);
+  let fellBack = false;
+  const fallback = () => {
+    if (fellBack) return; fellBack = true;
+    const f = document.createElement('iframe');
+    f.src = `https://drive.google.com/file/d/${m.id}/preview`;
+    f.allow = 'autoplay; fullscreen'; f.allowFullscreen = true; f.title = 'סרטון';
+    box.replaceChildren(f);
+  };
+  v.onerror = fallback;
+  setTimeout(() => { if (!fellBack && v.readyState === 0) fallback(); }, 8000);   // לא התחיל להיטען תוך 8 שניות
+  box.appendChild(v);
+  tile.replaceWith(box);
+  v.play().catch(() => {});
+}
+function fileRow(m) {
+  const d = el('div', 'file');
+  const ic = el('span', 'ico'); ic.innerHTML = '<svg viewBox="0 0 24 24">' + (m.kind === 'audio' ? PATHS.audio : PATHS.doc) + '</svg>';
+  d.append(ic, el('span', 'fn', m.name || (m.kind === 'audio' ? 'קובץ אודיו' : 'מסמך')));
+  const g = link(m.dl, 'הורדה'); d.appendChild(g);
+  const v = link(m.drive, 'צפייה'); v.style.color = 'var(--accent)'; d.appendChild(v);
+  return d;
+}
+function msg(it) {
+  const name = it.channel || 'ללא ערוץ';
+  const m = el('article', 'msg'); m.style.setProperty('--h', hue(name));
+  const col = el('div', 'col');
+  const row = el('div', 'mrow'); row.append(el('b', null, name), timeEl(it.date));
+  const bub = el('div', 'bub');
+  if (it.imp) { bub.classList.add('imp'); row.appendChild(el('span', 'badge', 'חשוב')); }
+  if (it.notes.has('שוחזר')) row.appendChild(el('span', 'badge soft', 'הועלה בדיעבד'));
+
+  const vis = it.media.filter(visual), files = it.media.filter(x => !visual(x));
+  if (vis.length) {
+    const g = el('div', 'gal' + (vis.length > 1 ? ' n2' : ''));
+    vis.forEach((x, i) => g.appendChild(mediaTile(it, x, i, vis.length)));
+    bub.appendChild(g);
+  }
+  files.forEach(x => bub.appendChild(fileRow(x)));
+  if (it.missing) {
+    const w = el('div', 'missing', it.media.length ? 'חלק מהקבצים לא נשמרו בדרייב. ' : 'הקובץ לא נשמר בדרייב. ');
+    if (it.tg) w.appendChild(link(it.tg, 'לצפייה בטלגרם'));
+    bub.appendChild(w);
+  }
+
+  if (it.text) {
+    const p = el('p', 'txt', it.text);
+    bub.appendChild(p);
+  }
+
+  if (vis.length === 1) {
+    const bt = el('div', 'btns');
+    const g = link(vis[0].dl, 'הורדה ישירה'); g.className = 'get';
+    const v = link(vis[0].drive, 'צפייה בדרייב'); v.className = 'view';
+    bt.append(g, v); bub.appendChild(bt);
+  } else if (vis.length > 1) {
+    const fl = el('div', 'flist');
+    vis.forEach((x, i) => {
+      const r = el('div');
+      r.append(el('span', null, (x.kind === 'video' ? 'סרטון ' : 'קובץ ') + (i + 1)), link(x.dl, 'הורדה'), link(x.drive, 'צפייה בדרייב'));
+      fl.appendChild(r);
+    });
+    bub.appendChild(fl);
+  }
+
+  const acts = el('div', 'acts');
+  if (it.text) { const b = ib('button', PATHS.copy, 'העתקת הטקסט'); b.onclick = () => copyText(it.text, b); acts.appendChild(b); }
+  if (it.tg) { const a = ib('a', PATHS.ext, 'פתיחה בטלגרם'); a.href = it.tg; a.target = '_blank'; a.rel = 'noopener noreferrer'; acts.appendChild(a); }
+  const lk = it.tg || (it.media[0] && it.media[0].drive);
+  if (lk) { const b = ib('button', PATHS.link, 'העתקת קישור'); b.onclick = () => copyText(lk, b); acts.appendChild(b); }
+  { const b = ib('button', PATHS.share, 'שיתוף'); b.onclick = () => share(it, b); acts.appendChild(b); }
+  bub.appendChild(acts);
+
+  col.append(row, bub);
+  const av = el('div', 'av', name.charAt(0));
+  if (CHANNEL_AVATARS[name]) {
+    const im = new Image(); im.alt = ''; im.src = CHANNEL_AVATARS[name];
+    im.onload = () => { av.textContent = ''; av.appendChild(im); };
+  }
+  m.append(av, col);
+  return m;
+}
+function dayLabel(d) {
+  const k = x => x.toDateString(), n = new Date();
+  if (k(d) === k(n)) return 'היום';
+  if (k(d) === k(new Date(n - 864e5))) return 'אתמול';
+  return d.toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+/* ========== רשימה וסינון ========== */
+function draw() {
+  const box = $('#msgs'); box.replaceChildren();
+  let last = '';
+  for (let i = state.start; i < state.list.length; i++) {
+    const it = state.list[i], k = it.date.toDateString();
+    if (k !== last) { const s = el('div', 'sep'); s.appendChild(el('span', null, dayLabel(it.date))); box.appendChild(s); last = k; }
+    box.appendChild(msg(it));
+  }
+  $('#olderWrap').hidden = state.start === 0;
+}
+function kindMatch(it) {
+  switch (state.kind) {
+    case 'video': return it.kinds.has('video');
+    case 'image': return it.kinds.has('image') || it.kinds.has('unknown');
+    case 'file': return it.kinds.has('audio') || it.kinds.has('doc');
+    case 'text': return !it.media.length;
+    default: return true;
+  }
+}
+/* שורת "מה מוצג" בראש הדף, לדוגמה: מציג סרטונים מתוכן חשוב (12) */
+function describe() {
+  const kinds = { all: 'את כל ההודעות', video: 'סרטונים', image: 'תמונות', file: 'קבצים', text: 'הודעות טקסט' };
+  const cats = { all: 'מכל הערוצים', haredi: 'מערוצים חרדיים', general: 'מערוצים כלליים', important: 'מתוכן חשוב' };
+  const box = $('#showing'); box.replaceChildren('מציג ');
+  box.appendChild(el('b', null, kinds[state.kind]));
+  box.append(' ');
+  if (state.sel.size) {
+    box.append('מ');
+    box.appendChild(el('b', null, [...state.sel].join(', ')));
+    if (state.cat === 'important') { box.append(' ('); box.appendChild(el('b', null, 'חשוב בלבד')); box.append(')'); }
+  } else {
+    box.appendChild(el('b', null, cats[state.cat]));
+  }
+  if (state.day) {
+    const [y, m, d] = state.day.split('-').map(Number);
+    box.append(' מתאריך ');
+    box.appendChild(el('b', null, dayLabel(new Date(y, m - 1, d))));
+  }
+  if (state.q.trim()) { box.append(' עם '); box.appendChild(el('b', null, '"' + state.q.trim() + '"')); }
+  if (state.hideDups) box.append(' בלי כפולות');
+  box.append(' (' + state.list.length + ')');
+  const n = (state.kind !== 'all') + (state.cat !== 'all') + !!state.day + !!state.q.trim() + (state.sel.size > 0) + state.hideDups;
+  $('#fcount').hidden = !n; $('#fcount').textContent = n;
+  if (n) {
+    const c = el('button', 'clearf', 'ניקוי הסינון'); c.type = 'button';
+    c.onclick = clearFilters;
+    box.appendChild(c);
+  }
+}
+function clearFilters() {
+  state.kind = 'all'; state.cat = 'all'; state.q = ''; state.sel.clear();
+  setDupsHidden(false, true);
+  $('#q').value = '';
+  document.querySelectorAll('.seg button[data-k]').forEach(x => x.setAttribute('aria-pressed', x.dataset.k === 'all'));
+  document.querySelectorAll('#catSeg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.c === 'all'));
+  try { localStorage.removeItem('feed_cat'); } catch (e) {}
+  fillChips();
+  setDay('');   // מפעיל גם את הסינון מחדש
+}
+function applyFilters(keepDate) {
+  const q = state.q.trim().toLowerCase();
+  state.list = state.items.filter(it =>
+    kindMatch(it) &&
+    (!state.day || dayKey(it.date) === state.day) &&
+    (!state.hideDups || !it.isDup) &&
+    (state.cat === 'all' || (state.cat === 'important' ? it.imp : channelIsHaredi(it.channel) === (state.cat === 'haredi'))) &&
+    (!state.sel.size || state.sel.has(it.channel)) &&
+    (!q || it.text.toLowerCase().includes(q) || it.channel.toLowerCase().includes(q)));
+  describe();
+  let st = Math.max(0, state.list.length - PAGE);
+  if (keepDate) { const i = state.list.findIndex(it => it.date >= keepDate); if (i >= 0 && i < st) st = i; }
+  state.start = st;
+  draw();
+  const s = $('#state');
+  s.hidden = state.list.length > 0;
+  if (!s.hidden) s.textContent = 'לא נמצאו הודעות. נסה לשנות את הסינון או את החיפוש.';
+}
+
+/* חלוקה לחרדיות / שאר: לפי עמודת הקטגוריה בגיליון (ולשורות ישנות - לפי HAREDI_CHANNELS) */
+let sheetHaredi = {};   // ערוץ -> חרדי
+const channelIsHaredi = n => !!sheetHaredi[n];
+
+function fillChips() {
+  const counts = {}, cat = {};
+  state.items.forEach(i => { counts[i.channel] = (counts[i.channel] || 0) + 1; if (i.haredi) cat[i.channel] = true; });
+  sheetHaredi = cat;
+  [...state.sel].forEach(c => { if (!counts[c]) state.sel.delete(c); });
+  const H = $('#chipsH'), O = $('#chipsO');
+  H.replaceChildren(); O.replaceChildren();
+  Object.entries(counts).sort((a, b) => b[1] - a[1]).forEach(([n, k]) => {
+    const b = el('button', 'chip', n); b.type = 'button'; b.title = k + ' הודעות';
+    b.setAttribute('aria-pressed', state.sel.has(n));
+    b.onclick = () => {
+      state.sel.has(n) ? state.sel.delete(n) : state.sel.add(n);
+      fillChips(); applyFilters(); toBottom();
+    };
+    (cat[n] ? H : O).appendChild(b);
+  });
+  $('#grpH').hidden = !H.children.length || state.cat === 'general';
+  $('#grpO').hidden = !O.children.length || state.cat === 'haredi';
+  $('#allChip').setAttribute('aria-pressed', !state.sel.size);
+  $('#q').placeholder = state.sel.size ? 'חיפוש ב: ' + [...state.sel].join(', ') : 'חיפוש בכל הקבוצות';
+}
+$('#allChip').onclick = () => { state.sel.clear(); fillChips(); applyFilters(); toBottom(); };
+/* כפתור "הסתר כפולות" (נשמר בדפדפן) */
+function setDupsHidden(on, silent) {
+  state.hideDups = on;
+  $('#dupBtn').setAttribute('aria-pressed', on);
+  try { localStorage.setItem('feed_hide_dups', on ? '1' : '0'); } catch (e) {}
+  if (!silent) { applyFilters(); toBottom(); }
+}
+$('#dupBtn').onclick = () => setDupsHidden(!state.hideDups);
+try { if (localStorage.getItem('feed_hide_dups') === '1') setDupsHidden(true, true); } catch (e) {}
+
+/* כפתור "סינון הודעות" למעלה: מציג / מסתיר את כל אפשרויות הסינון (נשמר בדפדפן) */
+function setFiltersOpen(open) {
+  $('#filters').hidden = !open;
+  $('#filterBtn').setAttribute('aria-expanded', open);
+  try { localStorage.setItem('feed_filters_open', open ? '1' : '0'); } catch (e) {}
+}
+$('#filterBtn').onclick = () => setFiltersOpen($('#filters').hidden);
+try { if (localStorage.getItem('feed_filters_open') === '0') setFiltersOpen(false); } catch (e) {}
+$('#toggleChips').onclick = e => {
+  const box = $('#chipsBox');
+  box.hidden = !box.hidden;
+  e.currentTarget.textContent = box.hidden ? 'הצג ערוצים' : 'הסתר ערוצים';
+};
+function updDown() {
+  const b = $('#down');
+  b.hidden = nearBottom() || !state.list.length;
+  b.textContent = state.fresh ? state.fresh + ' הודעות חדשות' : 'גלול למטה';
+}
+addEventListener('scroll', () => { if (nearBottom()) state.fresh = 0; updDown(); }, { passive: true });
+$('#down').onclick = () => { state.fresh = 0; toBottom(); };
+$('#older').onclick = () => {
+  const h = document.documentElement.scrollHeight, y = scrollY;
+  state.start = Math.max(0, state.start - PAGE);
+  draw();
+  scrollTo(0, y + document.documentElement.scrollHeight - h);
+};
+
+/* ========== חלון תצוגה (עם מעבר בין קבצים של אותה הודעה) ========== */
+const dlg = $('#dlg');
+let view = null;
+function showInViewer() {
+  const { it, idx } = view, vis = it.media.filter(visual), m = vis[idx];
+  const stage = $('#stage'), cap = $('#cap');
+  stage.replaceChildren(); cap.replaceChildren();
+  if (m.kind === 'video') {
+    const f = document.createElement('iframe');
+    f.src = `https://drive.google.com/file/d/${m.id}/preview`;
+    f.allow = 'autoplay; fullscreen'; f.allowFullscreen = true; f.title = 'סרטון';
+    stage.appendChild(f);
+  } else {
+    const im = new Image(); im.alt = ''; im.referrerPolicy = 'no-referrer'; im.src = thumb(m.id, 1600);
+    stage.appendChild(im);
+  }
+  if (vis.length > 1) {
+    const p = el('button', 'nav prev', '›'); p.type = 'button'; p.setAttribute('aria-label', 'הקודם');
+    const n = el('button', 'nav next', '‹'); n.type = 'button'; n.setAttribute('aria-label', 'הבא');
+    p.onclick = () => { view.idx = (idx - 1 + vis.length) % vis.length; showInViewer(); };
+    n.onclick = () => { view.idx = (idx + 1) % vis.length; showInViewer(); };
+    stage.append(p, n);
+  }
+  const row = el('div', 'mrow'); row.append(el('b', null, it.channel || 'ללא ערוץ'), timeEl(it.date));
+  if (vis.length > 1) row.appendChild(el('span', null, (idx + 1) + ' מתוך ' + vis.length));
+  cap.appendChild(row);
+  if (it.text) cap.appendChild(el('p', 'txt open', it.text));
+  const bt = el('div', 'btns');
+  const g = link(m.dl, 'הורדה ישירה'); g.className = 'get';
+  const v = link(m.drive, 'צפייה בדרייב'); v.className = 'view';
+  bt.append(g, v); cap.appendChild(bt);
+}
+function openViewer(it, idx) { view = { it, idx }; showInViewer(); if (!dlg.open) dlg.showModal(); }
+const closeViewer = () => dlg.close();
+$('#close').onclick = closeViewer;
+dlg.addEventListener('click', e => { if (e.target === dlg || e.target.classList.contains('wrap')) closeViewer(); });
+dlg.addEventListener('close', () => { $('#stage').replaceChildren(); view = null; });
+document.addEventListener('keydown', e => {
+  if (!dlg.open || !view) return;
+  const nb = $('#stage .nav.next'), pb = $('#stage .nav.prev');
+  if (e.key === 'ArrowLeft' && nb) nb.click();
+  if (e.key === 'ArrowRight' && pb) pb.click();
+});
+
+/* ========== פאנל התראות מערכת (לשונית "התראות מערכת" בגיליון) ========== */
+const ALERTS_TAB = 'התראות מערכת';
+let alerts = [], alertsLoaded = false;
+const alertsSeen = () => { try { return +localStorage.getItem('alerts_seen') || 0; } catch (e) { return 0; } };
+function linkify(p, text) {
+  text.split(/(https?:\/\/\S+)/).forEach((part, i) => p.append(i % 2 ? link(part, part) : part));
+}
+async function loadAlerts() {
+  try {
+    const d = await loadSheet(ALERTS_TAB);
+    alerts = (d.table.rows || []).map(r => {
+      const c = r.c || [], t = i => (c[i] && c[i].v != null ? String(c[i].v) : '');
+      return { date: parseDate(c[0]), level: t(1), text: t(2), sent: t(3) !== 'לא' };
+    }).filter(a => a.date && a.text).sort((a, b) => b.date - a.date);
+  } catch (e) {
+    if (!alertsLoaded) alerts = [];   // הלשונית עוד לא קיימת (אין התראות) או שהטעינה נכשלה
+  }
+  alertsLoaded = true;
+  drawAlerts();
+}
+function drawAlerts() {
+  const seen = alertsSeen(), box = $('#alertsList');
+  const fresh = alerts.filter(a => a.date.getTime() > seen).length;
+  $('#acount').hidden = !fresh; $('#acount').textContent = fresh;
+  box.replaceChildren();
+  if (!alerts.length) { box.appendChild(el('p', 'pempty', 'אין התראות. הכול עובד כמו שצריך.')); return; }
+  alerts.forEach(a => {
+    const d = el('div', 'alert' + (a.level === 'שגיאה' ? ' err' : '') + (a.date.getTime() > seen ? ' new' : ''));
+    const h = el('div', 'ah');
+    h.append(el('span', 'lv', a.level || 'התראה'), el('span', null, dayLabel(a.date) + ' ' + hm(a.date)));
+    const p = el('p'); linkify(p, a.text);
+    d.append(h, p);
+    if (!a.sent) d.appendChild(el('span', 'ns', 'ההתראה לא הגיעה לצ׳אט'));
+    box.appendChild(d);
+  });
+}
+function setPanel(open) {
+  $('#alertsPanel').classList.toggle('open', open);
+  $('#alertsPanel').setAttribute('aria-hidden', !open);
+  $('#alertsBtn').setAttribute('aria-expanded', open);
+  $('#pback').hidden = !open;
+  if (open) {
+    loadAlerts();
+    $('#alertsClose').focus();
+  } else if (alerts.length) {
+    // ההתראות שנראו - לא נספרות יותר כחדשות
+    try { localStorage.setItem('alerts_seen', String(alerts[0].date.getTime())); } catch (e) {}
+    drawAlerts();
+  }
+}
+$('#alertsBtn').onclick = () => setPanel(!$('#alertsPanel').classList.contains('open'));
+$('#alertsClose').onclick = () => setPanel(false);
+$('#pback').onclick = () => setPanel(false);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#alertsPanel').classList.contains('open') && !dlg.open) setPanel(false); });
+
+/* ========== אירועים וריענון ========== */
+document.querySelectorAll('.seg button[data-k]').forEach(b => b.onclick = () => {
+  state.kind = b.dataset.k;
+  document.querySelectorAll('.seg button[data-k]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  applyFilters(); toBottom();
+});
+// סינון לפי מגזר: חרדיים / כלליים (לפי החלוקה, כולל שינויים ידניים ב"עריכת חלוקה")
+document.querySelectorAll('#catSeg button').forEach(b => b.onclick = () => {
+  state.cat = b.dataset.c;
+  document.querySelectorAll('#catSeg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  try { localStorage.setItem('feed_cat', state.cat); } catch (e) {}
+  fillChips(); applyFilters(); toBottom();
+});
+try { const v = localStorage.getItem('feed_cat'); if (v === 'haredi' || v === 'general' || v === 'important') { state.cat = v; document.querySelectorAll('#catSeg button').forEach(x => x.setAttribute('aria-pressed', x.dataset.c === v)); } } catch (e) {}
+/* חיפוש לפי תאריך */
+function setDay(v) {
+  state.day = v || '';
+  $('#day').value = state.day;
+  $('#dayClear').hidden = !state.day;
+  $('#today').setAttribute('aria-pressed', state.day === dayKey(new Date()));
+  $('#yesterday').setAttribute('aria-pressed', state.day === dayKey(new Date(Date.now() - 864e5)));
+  applyFilters(); toBottom();
+}
+$('#day').onchange = e => setDay(e.target.value);
+$('#today').onclick = () => setDay(state.day === dayKey(new Date()) ? '' : dayKey(new Date()));
+$('#yesterday').onclick = () => { const y = dayKey(new Date(Date.now() - 864e5)); setDay(state.day === y ? '' : y); };
+$('#dayClear').onclick = () => setDay('');
+function setDayRange() {
+  if (!state.items.length) return;
+  $('#day').min = dayKey(state.items[0].date);
+  $('#day').max = dayKey(state.items[state.items.length - 1].date);
+}
+let timer;
+$('#q').oninput = e => { clearTimeout(timer); timer = setTimeout(() => { state.q = e.target.value; applyFilters(); toBottom(); }, 200); };
+$('#refresh').onclick = () => refresh(true);
+
+async function refresh(manual) {
+  const s = $('#state');
+  if (manual || !state.items.length) { s.hidden = false; s.textContent = 'טוען את הגיליון…'; }
+  try {
+    loadAlerts();
+    const items = toItems(await loadSheet());
+    const sig = a => a.length + '|' + (a.length ? a[a.length - 1].key + ':' + a[a.length - 1].media.length : '');
+    const first = !state.items.length;
+    const same = !first && sig(items) === sig(state.items);
+    const added = items.length - state.items.length;
+    state.items = items;
+    if (!same || manual) {
+      const wasBottom = nearBottom();
+      const keep = !first && !manual && state.list[state.start] ? state.list[state.start].date : null;
+      fillChips(); setDayRange(); applyFilters(keep);
+      if (first || manual || wasBottom) { state.fresh = 0; toBottom(); }
+      else if (added > 0) { state.fresh += added; }
+      updDown();
+    }
+    $('#meta').textContent = `${items.length} הודעות, עודכן ב-${hm(new Date())}`;
+  } catch (err) {
+    if (state.items.length) return;
+    s.hidden = false; s.replaceChildren();
+    const m = String(err && err.message || err);
+    const reason =
+      m === 'network' ? 'הדפדפן לא הצליח לקבל את הגיליון מגוגל. זה קורה כשהגיליון לא משותף ל"כל מי שיש לו את הקישור", או כשהקובץ נפתח בתצוגה מקדימה (במייל, בדרייב או בצ׳אט) ולא בדפדפן עצמו.'
+      : m === 'timeout' ? 'גוגל לא ענתה תוך 25 שניות. בדוק את החיבור לאינטרנט ונסה שוב.'
+      : m.startsWith('sheet') ? 'גוגל החזירה שגיאה על הגיליון' + (m.length > 5 ? ' (' + m.slice(7) + ')' : '') + '. בדוק שמזהה הגיליון נכון ושהוא משותף ל"כל מי שיש לו את הקישור".'
+      : 'הגיליון נטען, אבל הייתה שגיאה בקריאת הנתונים: ' + m;
+    const p = el('p', null, 'לא הצלחתי לטעון את הגיליון.');
+    const p2 = el('p', null, reason); p2.style.fontSize = '.9rem';
+    const p3 = el('p', null, 'קוד לבדיקה: ' + (err.detail || m) + ' | גיליון: ' + SHEET_ID + ' | ' + location.protocol); p3.style.cssText = 'font-size:.75rem;direction:ltr';
+    const b = el('button', 'btn', 'נסה שוב'); b.type = 'button'; b.onclick = () => refresh(true);
+    s.append(p, p2, p3, b);
+    $('#meta').textContent = 'הטעינה נכשלה';
+  }
+}
+let autoTimer;
+function schedule() {
+  clearInterval(autoTimer);
+  const sec = +$('#auto').value;
+  if (sec) autoTimer = setInterval(() => { if (!document.hidden && !dlg.open) refresh(false); }, sec * 1000);
+}
+try { const v = localStorage.getItem('autoRefresh'); if (v !== null && [...$('#auto').options].some(o => o.value === v)) $('#auto').value = v; } catch (e) {}
+$('#auto').onchange = () => { try { localStorage.setItem('autoRefresh', $('#auto').value); } catch (e) {} schedule(); };
+document.addEventListener('visibilitychange', () => { if (!document.hidden && +$('#auto').value) refresh(false); });
+schedule();
+setInterval(() => document.querySelectorAll('#msgs time').forEach(t => {
+  const d = new Date(t.dateTime), a = ago(d); t.textContent = hm(d) + (a ? ' · ' + a : '');
+}), 60000);
+refresh(true);
+</script>
+</body>
+</html>
